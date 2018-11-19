@@ -17,6 +17,7 @@ Fecha | Teoría | Recursos | Descripción
 15/11/18 | [Clase 1](teoria/clase1.md) | [Clase 1](recursos/clase1.md) | Intro + Chrome DevTools + Reintro a Javascript I
 16/11/18 | [Clase 2](teoria/clase2.md) | [Clase 2](recursos/clase2.md) | Reintro a Javascript II + Funciones y conceptos avanzados de JavaScript
 19/11/18 | [Clase 3](teoria/clase3.md) | [Clase 3](recursos/clase3.md) | ES6, ES7, y nuevas versiones del lenguaje + Programación Orientada a Objetos con prototipos
+20/11/18 | [Clase 4](teoria/clase4.md) | [Clase 4](recursos/clase4.md) | Gestión y manipulación de BOM, DOM, Etc... +  Gestión de Eventos + Ajax (GET, POST, Json, Fetch, etc...)
 
 Temario
 =================
